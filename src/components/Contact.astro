@@ -1,0 +1,65 @@
+---
+
+---
+
+<section class="contact section" id="contact">
+  <div class="container">
+    <h2 class="section-title">Get In Touch</h2>
+    <ul class="contact-links">
+      <li>
+        <a href="https://github.com/trentkm" target="_blank" rel="noopener noreferrer" class="contact-link">
+          GitHub
+        </a>
+      </li>
+      <li>
+        <a href="https://www.linkedin.com/in/trenton-morrell/" target="_blank" rel="noopener noreferrer" class="contact-link">
+          LinkedIn
+        </a>
+      </li>
+      <li>
+        <a href="mailto:tkmorrell6@gmail.com" class="contact-link">
+          Email
+        </a>
+      </li>
+      <li>
+        <a href="https://trentmorrell.netlify.app/trenton-morrell-resume.pdf" target="_blank" rel="noopener noreferrer" class="contact-link">
+          Resume
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact {
+    background: var(--steel);
+  }
+
+  .contact-links {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    flex-wrap: wrap;
+  }
+
+  .contact-link {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    letter-spacing: var(--ls-wider);
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 4px;
+    transition: border-color 0.2s ease;
+  }
+
+  .contact-link:hover {
+    border-color: transparent;
+  }
+
+  @media (max-width: 480px) {
+    .contact-links {
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+    }
+  }
+</style>

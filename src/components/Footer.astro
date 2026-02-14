@@ -1,0 +1,36 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container">
+    <p class="footer-copy">&copy; {year} Trent Morrell</p>
+    <p class="footer-hint">Try the Konami Code</p>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--brown);
+    color: var(--black);
+    padding: var(--space-md) var(--space-md);
+    text-align: center;
+    border-top: 2px solid var(--black);
+  }
+
+  .footer-copy {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: var(--ls-wider);
+    margin-bottom: var(--space-xs);
+  }
+
+  .footer-hint {
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: none;
+    opacity: 0.6;
+  }
+</style>

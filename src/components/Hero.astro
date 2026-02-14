@@ -1,0 +1,100 @@
+---
+
+---
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-circle" aria-hidden="true">
+      <svg viewBox="0 0 200 200" class="circle-text">
+        <defs>
+          <path id="circlePath" d="M 100,100 m -75,0 a 75,75 0 1,1 150,0 a 75,75 0 1,1 -150,0" />
+        </defs>
+        <text>
+          <textPath href="#circlePath">
+            CODE &bull; CRAFT &bull; BUILD &bull; SHIP &bull; CODE &bull; CRAFT &bull; BUILD &bull; SHIP &bull;
+          </textPath>
+        </text>
+      </svg>
+    </div>
+
+    <h1 class="hero-name">Trent Morrell</h1>
+    <p class="hero-title">Software Engineer</p>
+    <p class="hero-location">Dallas, Texas</p>
+  </div>
+</section>
+
+<style>
+  .hero {
+    background: var(--salmon);
+    padding: var(--space-2xl) var(--space-md);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-circle {
+    width: 220px;
+    height: 220px;
+    margin: 0 auto var(--space-lg);
+    animation: spin 20s linear infinite;
+  }
+
+  .circle-text {
+    width: 100%;
+    height: 100%;
+  }
+
+  .circle-text text {
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    fill: var(--black);
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 5.5rem);
+    line-height: 1.1;
+    letter-spacing: var(--ls-wider);
+    margin-bottom: var(--space-sm);
+  }
+
+  .hero-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    letter-spacing: var(--ls-widest);
+    margin-bottom: var(--space-md);
+  }
+
+  .hero-location {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-widest);
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      min-height: 70vh;
+      padding: var(--space-xl) var(--space-sm);
+    }
+
+    .hero-circle {
+      width: 160px;
+      height: 160px;
+    }
+  }
+</style>

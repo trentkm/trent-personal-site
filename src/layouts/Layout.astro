@@ -1,0 +1,65 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+  bodyData?: Record<string, string>;
+}
+
+const {
+  title = 'Trent Morrell — Software Engineer',
+  description = 'Software engineer based in Dallas, Texas. Building things that matter.',
+  bodyData = {},
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Bungee+Shade&family=Playfair+Display:ital@1&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body {...Object.fromEntries(Object.entries(bodyData).map(([k, v]) => [`data-${k}`, v]))}>
+    <slot />
+
+    <!-- Konami Code Listener -->
+    <script>
+      const KONAMI = [
+        'ArrowUp','ArrowUp','ArrowDown','ArrowDown',
+        'ArrowLeft','ArrowRight','ArrowLeft','ArrowRight',
+        'KeyB','KeyA',
+      ];
+      let pos = 0;
+
+      document.addEventListener('keydown', (e) => {
+        if (e.code === KONAMI[pos]) {
+          pos++;
+          if (pos === KONAMI.length) {
+            pos = 0;
+            const overlay = document.getElementById('vespa-overlay');
+            if (overlay) {
+              overlay.classList.add('active');
+              overlay.dispatchEvent(new CustomEvent('start-game'));
+            }
+          }
+        } else {
+          pos = 0;
+        }
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

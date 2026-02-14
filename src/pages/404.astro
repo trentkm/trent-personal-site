@@ -1,0 +1,68 @@
+---
+import Layout from '../layouts/Layout.astro';
+import VespaGame from '../components/VespaGame.astro';
+---
+
+<Layout title="404 — Wrong Turn" bodyData={{ page: '404' }}>
+  <section class="not-found">
+    <h1 class="not-found-title">Looks Like You Took A Wrong Turn</h1>
+    <p class="not-found-sub">But here's a game while you're lost</p>
+    <a href="/" class="not-found-link">Back to Home &rarr;</a>
+  </section>
+  <div class="game-container">
+    <VespaGame />
+  </div>
+</Layout>
+
+<style>
+  .not-found {
+    background: var(--salmon);
+    padding: var(--space-xl) var(--space-md) var(--space-md);
+    text-align: center;
+  }
+
+  .not-found-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    letter-spacing: var(--ls-wider);
+    margin-bottom: var(--space-sm);
+  }
+
+  .not-found-sub {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    letter-spacing: var(--ls-wide);
+    margin-bottom: var(--space-md);
+  }
+
+  .not-found-link {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-wider);
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .not-found-link:hover {
+    border-color: transparent;
+  }
+
+  .game-container {
+    height: 50vh;
+    min-height: 300px;
+    background: var(--black);
+    position: relative;
+  }
+
+  .game-container :global(.overlay) {
+    position: relative !important;
+    display: flex !important;
+    opacity: 1 !important;
+    height: 100%;
+  }
+
+  .game-container :global(.close-btn) {
+    display: none !important;
+  }
+</style>

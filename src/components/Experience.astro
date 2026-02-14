@@ -1,0 +1,130 @@
+---
+const jobs = [
+  {
+    company: 'Amazon',
+    role: 'Software Engineer II',
+    period: '2021 — Present',
+    highlights: [
+      'Led launch of Gift Cards for Video Channels and Music Unlimited, generating $1M+ combined annual revenue',
+      'Engineered installment payment tracking service on ECS/Fargate, eliminating third-party dependencies',
+      'Designed Pix payment integration for Brazil using Scala and QR code-based mobile banking flows',
+      'Built chargeback tracking system with SNS/SQS/Lambda and DynamoDB for financial reconciliation',
+    ],
+  },
+  {
+    company: 'CoStar Group',
+    role: 'Software Engineer',
+    period: '2020 — 2021',
+    highlights: [
+      'Enhanced report generation system in React, increasing daily capacity from 500 to 600 reports',
+      'Contributed to micro frontend architecture migration, achieving 25% faster development pace',
+      'Implemented 20+ features for STS hospitality analytics integration',
+    ],
+  },
+  {
+    company: 'Northrop Grumman',
+    role: 'Software Engineer',
+    period: '2019 — 2020',
+    highlights: [
+      'Developed enterprise software solutions for defense and aerospace systems',
+    ],
+  },
+];
+---
+
+<section class="experience section" id="experience">
+  <div class="container">
+    <h2 class="section-title">Experience</h2>
+    <ul class="job-list">
+      {jobs.map((j) => (
+        <li class="job-item">
+          <div class="job-divider" aria-hidden="true"></div>
+          <p class="job-period">{j.period}</p>
+          <h3 class="job-company">{j.company}</h3>
+          <p class="job-role">{j.role}</p>
+          <ul class="job-highlights">
+            {j.highlights.map((h) => (
+              <li class="job-highlight">{h}</li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .experience {
+    background: var(--cream);
+  }
+
+  .job-list {
+    text-align: center;
+  }
+
+  .job-item {
+    margin-bottom: var(--space-lg);
+  }
+
+  .job-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .job-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--black);
+    margin: 0 auto var(--space-md);
+  }
+
+  .job-item:first-child .job-divider {
+    display: none;
+  }
+
+  .job-period {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: var(--ls-widest);
+    margin-bottom: var(--space-xs);
+    opacity: 0.7;
+  }
+
+  .job-company {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    letter-spacing: var(--ls-wider);
+    margin-bottom: 0.25rem;
+  }
+
+  .job-role {
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: none;
+    margin-bottom: var(--space-sm);
+  }
+
+  .job-highlights {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+  }
+
+  .job-highlight {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    line-height: 1.8;
+    margin-bottom: var(--space-xs);
+    padding-left: 1rem;
+    position: relative;
+    text-transform: none;
+  }
+
+  .job-highlight::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+  }
+</style>

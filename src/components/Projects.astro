@@ -1,0 +1,116 @@
+---
+const projects = [
+  {
+    name: 'Waymarked',
+    description: 'Upload vacation photos, we extract locations and cluster them into cities — pick from 40+ map styles, adjust markers, and get a custom printed map dropshipped to your door',
+    stack: 'React, EXIF Extraction, Map Styling, Print Fulfillment',
+    link: 'https://www.waymarked.com/',
+    linkText: 'Visit Waymarked',
+  },
+  {
+    name: 'Claude WA',
+    description: 'WhatsApp-to-Claude Code bridge via Baileys websocket client',
+    stack: 'Node.js, Baileys, Claude Code CLI',
+    link: 'https://github.com/trentkm/claude-wa',
+    linkText: 'View on GitHub',
+  },
+  {
+    name: 'NomadDish',
+    description: 'Spin a 3D globe, land anywhere, get a local recipe from AI',
+    stack: 'Next.js, React Globe GL, OpenAI, OpenCage',
+    link: 'https://www.nomaddish.com/',
+    linkText: 'Visit NomadDish',
+  },
+  {
+    name: 'This Website',
+    description: 'Retro Italian Art Deco portfolio with a hidden game',
+    stack: 'Astro, Vanilla JS, Canvas API',
+    link: 'https://github.com/trentkm/trent-personal-site',
+    linkText: 'View on GitHub',
+  },
+];
+---
+
+<section class="projects section" id="projects">
+  <div class="container">
+    <h2 class="section-title">Projects</h2>
+    <ul class="project-list">
+      {projects.map((p) => (
+        <li class="project-item">
+          <div class="project-divider" aria-hidden="true"></div>
+          <h3 class="project-name">{p.name}</h3>
+          <p class="project-desc">{p.description}</p>
+          <p class="project-stack">{p.stack}</p>
+          <a href={p.link} target="_blank" rel="noopener noreferrer" class="project-link">
+            {p.linkText} &rarr;
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .projects {
+    background: var(--ochre);
+  }
+
+  .project-list {
+    text-align: center;
+  }
+
+  .project-item {
+    margin-bottom: var(--space-lg);
+  }
+
+  .project-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .project-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--black);
+    margin: 0 auto var(--space-md);
+  }
+
+  .project-item:first-child .project-divider {
+    display: none;
+  }
+
+  .project-name {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    letter-spacing: var(--ls-wider);
+    margin-bottom: var(--space-xs);
+  }
+
+  .project-desc {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-wide);
+    margin-bottom: var(--space-xs);
+  }
+
+  .project-stack {
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    text-transform: none;
+    margin-bottom: var(--space-sm);
+  }
+
+  .project-link {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: var(--ls-wider);
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .project-link:hover {
+    border-color: transparent;
+  }
+</style>

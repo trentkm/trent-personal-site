@@ -1,0 +1,570 @@
+---
+
+---
+
+<div id="vespa-overlay" class="overlay">
+  <button id="vespa-close" class="close-btn" aria-label="Close game">&times;</button>
+  <canvas id="vespa-canvas"></canvas>
+  <div id="vespa-start" class="start-screen">
+    <p class="start-title">Vespa Run</p>
+    <p class="start-sub">Press Space or Tap to Start</p>
+  </div>
+</div>
+
+<script>
+  const overlay = document.getElementById('vespa-overlay')!;
+  const closeBtn = document.getElementById('vespa-close')!;
+  const canvas = document.getElementById('vespa-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d')!;
+  const startScreen = document.getElementById('vespa-start')!;
+
+  // --- Colors from design system ---
+  const C = {
+    salmon: '#E8A091',
+    sage: '#6B7F5E',
+    steel: '#8B8FA8',
+    ochre: '#D4951B',
+    brown: '#8B6914',
+    black: '#1a1a1a',
+    cream: '#F5EDE4',
+  };
+
+  // --- Game state ---
+  let W = 800;
+  let H = 400;
+  let ground = 0;
+  let running = false;
+  let gameOver = false;
+  let score = 0;
+  let highScore = 0;
+  let speed = 4;
+  let frameCount = 0;
+
+  // Vespa
+  const vespa = {
+    x: 80,
+    y: 0,
+    w: 60,
+    h: 40,
+    vy: 0,
+    jumping: false,
+    grounded: true,
+  };
+
+  const GRAVITY = 0.6;
+  const JUMP_FORCE = -12;
+
+  // Obstacles
+  type Obstacle = { x: number; type: number; w: number; h: number };
+  let obstacles: Obstacle[] = [];
+  let spawnTimer = 0;
+  const SPAWN_INTERVAL_MIN = 60;
+  const SPAWN_INTERVAL_MAX = 120;
+  let nextSpawn = 90;
+
+  // Background buildings
+  type Building = { x: number; w: number; h: number; color: string };
+  let buildings: Building[] = [];
+
+  // Cobblestones
+  type Stone = { x: number; y: number; w: number; h: number };
+  let stones: Stone[] = [];
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    const rect = overlay.getBoundingClientRect();
+    W = rect.width;
+    H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ground = H - 80;
+  }
+
+  function initBuildings() {
+    buildings = [];
+    let bx = 0;
+    while (bx < W + 200) {
+      const bw = 40 + Math.random() * 60;
+      const bh = 80 + Math.random() * 120;
+      buildings.push({
+        x: bx,
+        w: bw,
+        h: bh,
+        color: Math.random() > 0.5 ? C.steel : C.cream,
+      });
+      bx += bw + 5;
+    }
+  }
+
+  function initStones() {
+    stones = [];
+    for (let sx = 0; sx < W + 100; sx += 18 + Math.random() * 10) {
+      stones.push({
+        x: sx,
+        y: ground + 10 + Math.random() * 40,
+        w: 12 + Math.random() * 8,
+        h: 8 + Math.random() * 5,
+      });
+    }
+  }
+
+  function reset() {
+    score = 0;
+    speed = 4;
+    frameCount = 0;
+    vespa.y = ground - vespa.h;
+    vespa.vy = 0;
+    vespa.jumping = false;
+    vespa.grounded = true;
+    obstacles = [];
+    spawnTimer = 0;
+    nextSpawn = 90;
+    gameOver = false;
+    initBuildings();
+    initStones();
+  }
+
+  function spawnObstacle() {
+    const types = [0, 1, 2]; // wine bottle, cafe chair, cypress
+    const t = types[Math.floor(Math.random() * types.length)];
+    let w = 20, h = 35;
+    if (t === 0) { w = 14; h = 38; }       // wine bottle
+    else if (t === 1) { w = 28; h = 30; }   // cafe chair
+    else { w = 20; h = 55; }                // cypress tree
+    obstacles.push({ x: W + 10, type: t, w, h });
+  }
+
+  // --- Drawing ---
+  function drawSky() {
+    ctx.fillStyle = C.salmon;
+    ctx.fillRect(0, 0, W, ground);
+  }
+
+  function drawBuildings() {
+    for (const b of buildings) {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, ground - b.h, b.w, b.h);
+      // Windows
+      ctx.fillStyle = C.ochre;
+      for (let wy = ground - b.h + 10; wy < ground - 10; wy += 20) {
+        for (let wx = b.x + 8; wx < b.x + b.w - 8; wx += 16) {
+          ctx.fillRect(wx, wy, 6, 8);
+        }
+      }
+    }
+  }
+
+  function drawGround() {
+    ctx.fillStyle = C.sage;
+    ctx.fillRect(0, ground, W, H - ground);
+    // Cobblestones
+    ctx.fillStyle = '#5a6e4e';
+    for (const s of stones) {
+      ctx.fillRect(s.x, s.y, s.w, s.h);
+    }
+    // Ground line
+    ctx.strokeStyle = C.black;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, ground);
+    ctx.lineTo(W, ground);
+    ctx.stroke();
+  }
+
+  function drawVespa() {
+    const x = vespa.x;
+    const y = vespa.y;
+    const baseY = y + vespa.h;
+
+    // Wheels
+    ctx.fillStyle = C.black;
+    ctx.beginPath();
+    ctx.arc(x + 10, baseY - 2, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + vespa.w - 10, baseY - 2, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wheel spokes
+    ctx.fillStyle = C.cream;
+    ctx.beginPath();
+    ctx.arc(x + 10, baseY - 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + vespa.w - 10, baseY - 2, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = C.ochre;
+    ctx.fillRect(x + 5, y + 12, vespa.w - 10, 16);
+
+    // Front fender curve (simplified as rectangle)
+    ctx.fillStyle = C.ochre;
+    ctx.fillRect(x + vespa.w - 18, y + 18, 14, 12);
+
+    // Seat
+    ctx.fillStyle = C.brown;
+    ctx.fillRect(x + 12, y + 8, 22, 6);
+
+    // Handlebar
+    ctx.strokeStyle = C.black;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + vespa.w - 12, y + 8);
+    ctx.lineTo(x + vespa.w - 8, y);
+    ctx.stroke();
+
+    // Headlight
+    ctx.fillStyle = C.cream;
+    ctx.beginPath();
+    ctx.arc(x + vespa.w - 6, y + 16, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawObstacle(o: Obstacle) {
+    const bx = o.x;
+    const by = ground - o.h;
+
+    ctx.strokeStyle = C.black;
+    ctx.lineWidth = 2;
+
+    if (o.type === 0) {
+      // Wine bottle — dark burgundy with cream label
+      ctx.fillStyle = '#722F37';
+      ctx.fillRect(bx + 3, by, 8, o.h);
+      ctx.strokeRect(bx + 3, by, 8, o.h);
+      // Neck
+      ctx.fillRect(bx + 5, by - 8, 4, 10);
+      ctx.strokeRect(bx + 5, by - 8, 4, 10);
+      // Label
+      ctx.fillStyle = C.cream;
+      ctx.fillRect(bx + 4, by + o.h * 0.3, 6, 10);
+    } else if (o.type === 1) {
+      // Cafe chair — ochre with black outline
+      ctx.fillStyle = C.ochre;
+      // Seat
+      ctx.fillRect(bx, by + 10, o.w, 4);
+      ctx.strokeRect(bx, by + 10, o.w, 4);
+      // Legs
+      ctx.fillRect(bx + 2, by + 14, 3, o.h - 14);
+      ctx.fillRect(bx + o.w - 5, by + 14, 3, o.h - 14);
+      // Back
+      ctx.fillRect(bx, by, 3, 14);
+      ctx.fillRect(bx + o.w - 3, by, 3, 14);
+      ctx.fillRect(bx, by, o.w, 3);
+      ctx.strokeRect(bx, by, o.w, o.h);
+    } else {
+      // Cypress tree — bright terracotta pot + dark foliage with outline
+      // Pot
+      ctx.fillStyle = '#C45A3C';
+      ctx.fillRect(bx + 4, ground - 16, 12, 16);
+      ctx.strokeRect(bx + 4, ground - 16, 12, 16);
+      // Foliage — tall narrow triangle
+      ctx.fillStyle = C.black;
+      ctx.beginPath();
+      ctx.moveTo(bx + 10, by);
+      ctx.lineTo(bx - 2, ground - 16);
+      ctx.lineTo(bx + 22, ground - 16);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  function drawScore() {
+    ctx.fillStyle = C.black;
+    ctx.font = '700 24px "Bebas Neue", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(String(score).padStart(5, '0'), W - 20, 35);
+    if (highScore > 0) {
+      ctx.font = '400 14px "Space Mono", monospace';
+      ctx.fillText('HI ' + String(highScore).padStart(5, '0'), W - 20, 55);
+    }
+  }
+
+  function drawGameOver() {
+    ctx.fillStyle = 'rgba(26,26,26,0.7)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.fillStyle = C.salmon;
+    ctx.font = '700 48px "Bebas Neue", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', W / 2, H / 2 - 20);
+
+    ctx.fillStyle = C.cream;
+    ctx.font = '400 16px "Space Mono", monospace';
+    ctx.fillText('SCORE: ' + score, W / 2, H / 2 + 20);
+    ctx.fillText('PRESS SPACE TO RETRY', W / 2, H / 2 + 50);
+  }
+
+  // --- Collision ---
+  function checkCollision(o: Obstacle): boolean {
+    const vx = vespa.x + 5;
+    const vy2 = vespa.y + 5;
+    const vw = vespa.w - 10;
+    const vh = vespa.h - 5;
+    const ox = o.x;
+    const oy = ground - o.h;
+    return vx < ox + o.w && vx + vw > ox && vy2 < oy + o.h && vy2 + vh > oy;
+  }
+
+  // --- Update ---
+  function update() {
+    if (!running || gameOver) return;
+
+    frameCount++;
+    if (frameCount % 10 === 0) score++;
+    if (frameCount % 500 === 0) speed += 0.5;
+
+    // Vespa physics
+    if (!vespa.grounded) {
+      vespa.vy += GRAVITY;
+      vespa.y += vespa.vy;
+      if (vespa.y >= ground - vespa.h) {
+        vespa.y = ground - vespa.h;
+        vespa.vy = 0;
+        vespa.grounded = true;
+        vespa.jumping = false;
+      }
+    }
+
+    // Scroll buildings (parallax — slower)
+    for (const b of buildings) {
+      b.x -= speed * 0.3;
+    }
+    // Recycle buildings
+    if (buildings.length > 0 && buildings[0].x + buildings[0].w < 0) {
+      const last = buildings[buildings.length - 1];
+      buildings.shift();
+      const bw = 40 + Math.random() * 60;
+      const bh = 80 + Math.random() * 120;
+      buildings.push({
+        x: last.x + last.w + 5,
+        w: bw,
+        h: bh,
+        color: Math.random() > 0.5 ? C.steel : C.cream,
+      });
+    }
+
+    // Scroll stones
+    for (const s of stones) {
+      s.x -= speed;
+    }
+    // Recycle stones
+    if (stones.length > 0 && stones[0].x + stones[0].w < 0) {
+      stones.shift();
+      const last = stones[stones.length - 1];
+      stones.push({
+        x: (last?.x ?? W) + 18 + Math.random() * 10,
+        y: ground + 10 + Math.random() * 40,
+        w: 12 + Math.random() * 8,
+        h: 8 + Math.random() * 5,
+      });
+    }
+
+    // Spawn obstacles
+    spawnTimer++;
+    if (spawnTimer >= nextSpawn) {
+      spawnObstacle();
+      spawnTimer = 0;
+      nextSpawn = SPAWN_INTERVAL_MIN + Math.random() * (SPAWN_INTERVAL_MAX - SPAWN_INTERVAL_MIN);
+      // Decrease interval as speed increases
+      nextSpawn = Math.max(40, nextSpawn - speed * 2);
+    }
+
+    // Move + check obstacles
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      obstacles[i].x -= speed;
+      if (checkCollision(obstacles[i])) {
+        gameOver = true;
+        if (score > highScore) highScore = score;
+      }
+      if (obstacles[i].x + obstacles[i].w < 0) {
+        obstacles.splice(i, 1);
+      }
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawSky();
+    drawBuildings();
+    drawGround();
+    for (const o of obstacles) drawObstacle(o);
+    drawVespa();
+    drawScore();
+    if (gameOver) drawGameOver();
+  }
+
+  function loop() {
+    update();
+    draw();
+    if (running) requestAnimationFrame(loop);
+  }
+
+  function jump() {
+    if (vespa.grounded && !gameOver) {
+      vespa.vy = JUMP_FORCE;
+      vespa.grounded = false;
+      vespa.jumping = true;
+    }
+  }
+
+  function startGame() {
+    startScreen.style.display = 'none';
+    resize();
+    reset();
+    running = true;
+    loop();
+  }
+
+  function handleInput() {
+    if (!running) {
+      startGame();
+    } else if (gameOver) {
+      reset();
+      // running is already true, loop is already going — just un-pause via gameOver = false (done in reset)
+    } else {
+      jump();
+    }
+  }
+
+  // --- Events ---
+  document.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('active')) return;
+    if (e.code === 'Space') {
+      e.preventDefault();
+      handleInput();
+    }
+  });
+
+  canvas.addEventListener('click', handleInput);
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleInput();
+  }, { passive: false });
+
+  // Start screen also needs to handle taps (it sits on top of canvas)
+  startScreen.addEventListener('click', handleInput);
+  startScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    handleInput();
+  }, { passive: false });
+
+  // Overlay catches taps during gameplay on mobile
+  overlay.addEventListener('touchstart', (e) => {
+    if (!overlay.classList.contains('active')) return;
+    // Don't intercept close button taps
+    if ((e.target as HTMLElement).id === 'vespa-close') return;
+    e.preventDefault();
+    handleInput();
+  }, { passive: false });
+
+  closeBtn.addEventListener('click', () => {
+    running = false;
+    overlay.classList.remove('active');
+  });
+
+  overlay.addEventListener('start-game', () => {
+    startScreen.style.display = 'flex';
+    resize();
+    reset();
+    draw();
+  });
+
+  window.addEventListener('resize', () => {
+    if (overlay.classList.contains('active')) {
+      resize();
+    }
+  });
+
+  // Auto-start if on 404 page
+  if (document.body.dataset.page === '404') {
+    overlay.classList.add('active');
+    overlay.style.position = 'relative';
+    overlay.style.borderRadius = '0';
+    closeBtn.style.display = 'none';
+    startScreen.style.display = 'flex';
+    resize();
+    reset();
+    draw();
+  }
+</script>
+
+<style>
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: var(--black);
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .overlay.active {
+    display: flex;
+    opacity: 1;
+    touch-action: none;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: var(--cream);
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 1001;
+    font-family: var(--font-body);
+    letter-spacing: 0;
+    padding: 8px 12px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .close-btn:hover {
+    color: var(--salmon);
+  }
+
+  canvas {
+    display: block;
+    touch-action: none;
+    width: 100%;
+    height: 100%;
+  }
+
+  .start-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(26, 26, 26, 0.8);
+    z-index: 1002;
+  }
+
+  .start-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: var(--salmon);
+    letter-spacing: var(--ls-wider);
+    margin-bottom: 1rem;
+  }
+
+  .start-sub {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    color: var(--cream);
+    letter-spacing: var(--ls-wider);
+    text-transform: uppercase;
+  }
+</style>

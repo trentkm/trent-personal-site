@@ -1,0 +1,61 @@
+---
+
+---
+
+<section class="callout">
+  <div class="container">
+    <p class="callout-text">
+      <span class="callout-script">Don't care about any of this?</span>
+    </p>
+    <button id="game-trigger" class="callout-btn">Play a Game Instead</button>
+  </div>
+</section>
+
+<script>
+  document.getElementById('game-trigger')?.addEventListener('click', () => {
+    const overlay = document.getElementById('vespa-overlay');
+    if (overlay) {
+      overlay.classList.add('active');
+      overlay.dispatchEvent(new CustomEvent('start-game'));
+    }
+  });
+</script>
+
+<style>
+  .callout {
+    background: var(--salmon);
+    padding: var(--space-md) var(--space-md);
+    text-align: center;
+    border-top: 2px solid var(--black);
+    border-bottom: 2px solid var(--black);
+  }
+
+  .callout-script {
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    letter-spacing: 0.05em;
+    text-transform: none;
+  }
+
+  .callout-text {
+    margin-bottom: var(--space-sm);
+  }
+
+  .callout-btn {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-wider);
+    text-transform: uppercase;
+    background: var(--black);
+    color: var(--salmon);
+    border: none;
+    padding: 0.75rem 2rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .callout-btn:hover {
+    background: var(--brown);
+  }
+</style>

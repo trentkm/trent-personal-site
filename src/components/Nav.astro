@@ -1,0 +1,68 @@
+---
+
+---
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo">TM</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--salmon);
+    border-bottom: 2px solid var(--black);
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: var(--ls-wider);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: var(--space-md);
+  }
+
+  .nav-links a {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-wider);
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .nav-links a:hover {
+    border-bottom-color: var(--black);
+  }
+
+  @media (max-width: 480px) {
+    .nav-links {
+      gap: var(--space-sm);
+    }
+
+    .nav-links a {
+      font-size: 0.75rem;
+    }
+  }
+</style>
