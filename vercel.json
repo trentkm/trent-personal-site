@@ -1,3 +1,23 @@
 {
-  "framework": "astro"
+  "framework": "astro",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.trentmorrell.dev" }],
+      "destination": "https://trentmorrell.dev/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "trentmorrell.com" }],
+      "destination": "https://trentmorrell.dev/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.trentmorrell.com" }],
+      "destination": "https://trentmorrell.dev/:path*",
+      "permanent": true
+    }
+  ]
 }
