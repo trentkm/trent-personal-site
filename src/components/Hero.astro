@@ -67,10 +67,13 @@
 
   .hero-name {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 8vw, 5.5rem);
+    font-size: clamp(2rem, 8vw, 5.5rem);
     line-height: 1.1;
     letter-spacing: var(--ls-wider);
     margin-bottom: var(--space-sm);
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   .hero-title {
@@ -95,6 +98,14 @@
     .hero-circle {
       width: 160px;
       height: 160px;
+    }
+
+    .hero-name {
+      letter-spacing: 0.1em;
+    }
+
+    .hero-title {
+      letter-spacing: 0.2em;
     }
   }
 </style>
