@@ -1,0 +1,69 @@
+---
+const fixation = "Lord of the Rings";
+const label = "Currently Fixated On";
+// Repeat enough times to fill the screen seamlessly
+const repeat = 8;
+---
+
+<div class="marquee" aria-label={`${label}: ${fixation}`}>
+  <div class="marquee-track">
+    {Array.from({ length: repeat }).map(() => (
+      <span class="marquee-item">
+        <span class="marquee-label">{label}:</span>
+        <span class="marquee-value">{fixation}</span>
+        <span class="marquee-dot" aria-hidden="true">&bull;</span>
+      </span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .marquee {
+    background: #b8908f;
+    color: var(--black);
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 0.6rem 0;
+  }
+
+  .marquee-track {
+    display: inline-flex;
+    animation: scroll-left 20s linear infinite;
+  }
+
+  .marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    padding-right: 2em;
+  }
+
+  .marquee-label {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: var(--ls-wider);
+    text-transform: uppercase;
+  }
+
+  .marquee-value {
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: none;
+  }
+
+  .marquee-dot {
+    font-size: 0.6rem;
+    opacity: 0.5;
+  }
+
+  @keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+</style>
