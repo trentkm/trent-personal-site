@@ -6,7 +6,7 @@
   <button id="vespa-close" class="close-btn" aria-label="Close game">&times;</button>
   <canvas id="vespa-canvas"></canvas>
   <div id="vespa-start" class="start-screen">
-    <p class="start-title">Vespa Run</p>
+    <p class="start-title">Shred Run</p>
     <p class="start-sub">Press Space or Tap to Start</p>
   </div>
 </div>
@@ -18,15 +18,30 @@
   const ctx = canvas.getContext('2d')!;
   const startScreen = document.getElementById('vespa-start')!;
 
-  // --- Colors from design system ---
+  // --- Colors ---
   const C = {
-    salmon: '#E8A091',
-    sage: '#6B7F5E',
-    steel: '#8B8FA8',
-    ochre: '#D4951B',
-    brown: '#8B6914',
+    skyTop: '#4A6FA5',
+    skyBot: '#8AADD4',
+    snow: '#F0F4F8',
+    snowShadow: '#D8E2EC',
+    snowDark: '#C5D3E0',
+    mountain: '#7B8FA8',
+    mountainLight: '#9AAFC4',
+    mountainSnow: '#E8EFF5',
+    treeDark: '#2D5A3D',
+    treeMid: '#3A7A52',
+    treeLight: '#4A9A65',
+    trunk: '#5C3D2E',
+    rock: '#5A6B7A',
+    rockLight: '#7A8B9A',
     black: '#1a1a1a',
+    white: '#FFFFFF',
     cream: '#F5EDE4',
+    salmon: '#E8A091',
+    jacket: '#E8A091',
+    pants: '#1a1a1a',
+    board: '#D4951B',
+    goggles: '#D4951B',
   };
 
   // --- Game state ---
@@ -40,12 +55,12 @@
   let speed = 4;
   let frameCount = 0;
 
-  // Vespa
-  const vespa = {
+  // Player (snowboarder)
+  const player = {
     x: 80,
     y: 0,
-    w: 60,
-    h: 40,
+    w: 40,
+    h: 48,
     vy: 0,
     jumping: false,
     grounded: true,
@@ -62,13 +77,21 @@
   const SPAWN_INTERVAL_MAX = 120;
   let nextSpawn = 90;
 
-  // Background buildings
-  type Building = { x: number; w: number; h: number; color: string };
-  let buildings: Building[] = [];
+  // Background mountains
+  type Mountain = { x: number; w: number; h: number; layer: number };
+  let mountains: Mountain[] = [];
 
-  // Cobblestones
-  type Stone = { x: number; y: number; w: number; h: number };
-  let stones: Stone[] = [];
+  // Background trees
+  type BgTree = { x: number; h: number; shade: number };
+  let bgTrees: BgTree[] = [];
+
+  // Snowflakes
+  type Flake = { x: number; y: number; r: number; vx: number; vy: number };
+  let flakes: Flake[] = [];
+
+  // Snow texture bumps
+  type Bump = { x: number; y: number; w: number; h: number };
+  let bumps: Bump[] = [];
 
   function resize() {
     const dpr = window.devicePixelRatio || 1;
@@ -83,30 +106,58 @@
     ground = H - 80;
   }
 
-  function initBuildings() {
-    buildings = [];
-    let bx = 0;
-    while (bx < W + 200) {
-      const bw = 40 + Math.random() * 60;
-      const bh = 80 + Math.random() * 120;
-      buildings.push({
-        x: bx,
-        w: bw,
-        h: bh,
-        color: Math.random() > 0.5 ? C.steel : C.cream,
-      });
-      bx += bw + 5;
+  function initMountains() {
+    mountains = [];
+    // Far layer
+    let mx = -50;
+    while (mx < W + 300) {
+      const mw = 150 + Math.random() * 200;
+      const mh = 100 + Math.random() * 80;
+      mountains.push({ x: mx, w: mw, h: mh, layer: 0 });
+      mx += mw * 0.6;
+    }
+    // Near layer
+    mx = -30;
+    while (mx < W + 300) {
+      const mw = 100 + Math.random() * 150;
+      const mh = 60 + Math.random() * 60;
+      mountains.push({ x: mx, w: mw, h: mh, layer: 1 });
+      mx += mw * 0.7;
     }
   }
 
-  function initStones() {
-    stones = [];
-    for (let sx = 0; sx < W + 100; sx += 18 + Math.random() * 10) {
-      stones.push({
-        x: sx,
-        y: ground + 10 + Math.random() * 40,
-        w: 12 + Math.random() * 8,
-        h: 8 + Math.random() * 5,
+  function initBgTrees() {
+    bgTrees = [];
+    for (let tx = 0; tx < W + 200; tx += 30 + Math.random() * 50) {
+      bgTrees.push({
+        x: tx,
+        h: 30 + Math.random() * 40,
+        shade: Math.random(),
+      });
+    }
+  }
+
+  function initFlakes() {
+    flakes = [];
+    for (let i = 0; i < 60; i++) {
+      flakes.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: 1 + Math.random() * 2,
+        vx: -0.5 + Math.random() * -1,
+        vy: 0.5 + Math.random() * 1.5,
+      });
+    }
+  }
+
+  function initBumps() {
+    bumps = [];
+    for (let bx = 0; bx < W + 100; bx += 15 + Math.random() * 12) {
+      bumps.push({
+        x: bx,
+        y: ground + 8 + Math.random() * 40,
+        w: 10 + Math.random() * 12,
+        h: 3 + Math.random() * 4,
       });
     }
   }
@@ -115,58 +166,119 @@
     score = 0;
     speed = 4;
     frameCount = 0;
-    vespa.y = ground - vespa.h;
-    vespa.vy = 0;
-    vespa.jumping = false;
-    vespa.grounded = true;
+    player.y = ground - player.h;
+    player.vy = 0;
+    player.jumping = false;
+    player.grounded = true;
     obstacles = [];
     spawnTimer = 0;
     nextSpawn = 90;
     gameOver = false;
-    initBuildings();
-    initStones();
+    initMountains();
+    initBgTrees();
+    initFlakes();
+    initBumps();
   }
 
   function spawnObstacle() {
-    const types = [0, 1, 2]; // wine bottle, cafe chair, cypress
+    const types = [0, 1, 2]; // rock, log, snowman
     const t = types[Math.floor(Math.random() * types.length)];
     let w = 20, h = 35;
-    if (t === 0) { w = 14; h = 38; }       // wine bottle
-    else if (t === 1) { w = 28; h = 30; }   // cafe chair
-    else { w = 20; h = 55; }                // cypress tree
+    if (t === 0) { w = 30; h = 28; }       // rock
+    else if (t === 1) { w = 40; h = 18; }   // log
+    else { w = 24; h = 45; }                // snowman
     obstacles.push({ x: W + 10, type: t, w, h });
   }
 
   // --- Drawing ---
   function drawSky() {
-    ctx.fillStyle = C.salmon;
+    const grad = ctx.createLinearGradient(0, 0, 0, ground);
+    grad.addColorStop(0, C.skyTop);
+    grad.addColorStop(1, C.skyBot);
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, ground);
   }
 
-  function drawBuildings() {
-    for (const b of buildings) {
-      ctx.fillStyle = b.color;
-      ctx.fillRect(b.x, ground - b.h, b.w, b.h);
-      // Windows
-      ctx.fillStyle = C.ochre;
-      for (let wy = ground - b.h + 10; wy < ground - 10; wy += 20) {
-        for (let wx = b.x + 8; wx < b.x + b.w - 8; wx += 16) {
-          ctx.fillRect(wx, wy, 6, 8);
-        }
+  function drawMountains() {
+    for (const m of mountains) {
+      if (m.layer === 0) {
+        // Far mountains — lighter
+        ctx.fillStyle = C.mountainLight;
+        ctx.beginPath();
+        ctx.moveTo(m.x, ground);
+        ctx.lineTo(m.x + m.w * 0.5, ground - m.h);
+        ctx.lineTo(m.x + m.w, ground);
+        ctx.closePath();
+        ctx.fill();
+        // Snow cap
+        ctx.fillStyle = C.mountainSnow;
+        ctx.beginPath();
+        ctx.moveTo(m.x + m.w * 0.35, ground - m.h * 0.6);
+        ctx.lineTo(m.x + m.w * 0.5, ground - m.h);
+        ctx.lineTo(m.x + m.w * 0.65, ground - m.h * 0.6);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // Near mountains — darker
+        ctx.fillStyle = C.mountain;
+        ctx.beginPath();
+        ctx.moveTo(m.x, ground);
+        ctx.lineTo(m.x + m.w * 0.45, ground - m.h);
+        ctx.lineTo(m.x + m.w, ground);
+        ctx.closePath();
+        ctx.fill();
+        // Snow cap
+        ctx.fillStyle = C.white;
+        ctx.beginPath();
+        ctx.moveTo(m.x + m.w * 0.32, ground - m.h * 0.55);
+        ctx.lineTo(m.x + m.w * 0.45, ground - m.h);
+        ctx.lineTo(m.x + m.w * 0.58, ground - m.h * 0.55);
+        ctx.closePath();
+        ctx.fill();
       }
     }
   }
 
-  function drawGround() {
-    ctx.fillStyle = C.sage;
-    ctx.fillRect(0, ground, W, H - ground);
-    // Cobblestones
-    ctx.fillStyle = '#5a6e4e';
-    for (const s of stones) {
-      ctx.fillRect(s.x, s.y, s.w, s.h);
+  function drawBgTrees() {
+    for (const t of bgTrees) {
+      const baseY = ground;
+      // Trunk
+      ctx.fillStyle = C.trunk;
+      ctx.fillRect(t.x + t.h * 0.15, baseY - t.h * 0.3, 3, t.h * 0.3);
+      // Tree — layered triangles
+      const col = t.shade > 0.5 ? C.treeDark : C.treeMid;
+      ctx.fillStyle = col;
+      // Bottom layer
+      ctx.beginPath();
+      ctx.moveTo(t.x + t.h * 0.17, baseY - t.h * 0.2);
+      ctx.lineTo(t.x - t.h * 0.15, baseY - t.h * 0.2);
+      ctx.lineTo(t.x + t.h * 0.17, baseY - t.h * 0.65);
+      ctx.lineTo(t.x + t.h * 0.49, baseY - t.h * 0.2);
+      ctx.closePath();
+      ctx.fill();
+      // Top layer
+      ctx.fillStyle = t.shade > 0.5 ? C.treeMid : C.treeLight;
+      ctx.beginPath();
+      ctx.moveTo(t.x + t.h * 0.17, baseY - t.h);
+      ctx.lineTo(t.x - t.h * 0.05, baseY - t.h * 0.5);
+      ctx.lineTo(t.x + t.h * 0.39, baseY - t.h * 0.5);
+      ctx.closePath();
+      ctx.fill();
     }
-    // Ground line
-    ctx.strokeStyle = C.black;
+  }
+
+  function drawGround() {
+    ctx.fillStyle = C.snow;
+    ctx.fillRect(0, ground, W, H - ground);
+    // Snow texture
+    ctx.fillStyle = C.snowShadow;
+    for (const b of bumps) {
+      ctx.beginPath();
+      ctx.ellipse(b.x, b.y, b.w / 2, b.h / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Ground line — soft
+    ctx.strokeStyle = C.snowDark;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, ground);
@@ -174,54 +286,76 @@
     ctx.stroke();
   }
 
-  function drawVespa() {
-    const x = vespa.x;
-    const y = vespa.y;
-    const baseY = y + vespa.h;
+  function drawFlakes() {
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    for (const f of flakes) {
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
-    // Wheels
-    ctx.fillStyle = C.black;
+  function drawPlayer() {
+    const x = player.x;
+    const y = player.y;
+    const baseY = y + player.h;
+
+    // Board
+    ctx.fillStyle = C.board;
     ctx.beginPath();
-    ctx.arc(x + 10, baseY - 2, 8, 0, Math.PI * 2);
+    ctx.ellipse(x + 20, baseY - 2, 22, 4, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x + vespa.w - 10, baseY - 2, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Wheel spokes
-    ctx.fillStyle = C.cream;
-    ctx.beginPath();
-    ctx.arc(x + 10, baseY - 2, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(x + vespa.w - 10, baseY - 2, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Body
-    ctx.fillStyle = C.ochre;
-    ctx.fillRect(x + 5, y + 12, vespa.w - 10, 16);
-
-    // Front fender curve (simplified as rectangle)
-    ctx.fillStyle = C.ochre;
-    ctx.fillRect(x + vespa.w - 18, y + 18, 14, 12);
-
-    // Seat
-    ctx.fillStyle = C.brown;
-    ctx.fillRect(x + 12, y + 8, 22, 6);
-
-    // Handlebar
     ctx.strokeStyle = C.black;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(x + vespa.w - 12, y + 8);
-    ctx.lineTo(x + vespa.w - 8, y);
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Headlight
+    // Legs
+    ctx.fillStyle = C.pants;
+    ctx.fillRect(x + 12, y + 28, 7, 16);
+    ctx.fillRect(x + 21, y + 28, 7, 16);
+
+    // Torso / jacket
+    ctx.fillStyle = C.jacket;
+    ctx.fillRect(x + 10, y + 14, 20, 16);
+
+    // Arms — bent forward for speed
+    ctx.strokeStyle = C.jacket;
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    // Back arm
+    ctx.beginPath();
+    ctx.moveTo(x + 12, y + 18);
+    ctx.lineTo(x + 4, y + 26);
+    ctx.stroke();
+    // Front arm
+    ctx.beginPath();
+    ctx.moveTo(x + 28, y + 18);
+    ctx.lineTo(x + 36, y + 24);
+    ctx.stroke();
+    ctx.lineCap = 'butt';
+
+    // Head
     ctx.fillStyle = C.cream;
     ctx.beginPath();
-    ctx.arc(x + vespa.w - 6, y + 16, 4, 0, Math.PI * 2);
+    ctx.arc(x + 20, y + 10, 8, 0, Math.PI * 2);
     ctx.fill();
+
+    // Beanie
+    ctx.fillStyle = C.black;
+    ctx.beginPath();
+    ctx.arc(x + 20, y + 8, 8, Math.PI, 0);
+    ctx.fill();
+    // Beanie pom
+    ctx.beginPath();
+    ctx.arc(x + 20, y + 1, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Goggles
+    ctx.fillStyle = C.goggles;
+    ctx.fillRect(x + 14, y + 8, 12, 4);
+    ctx.strokeStyle = C.black;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 14, y + 8, 12, 4);
   }
 
   function drawObstacle(o: Obstacle) {
@@ -229,53 +363,117 @@
     const by = ground - o.h;
 
     ctx.strokeStyle = C.black;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
 
     if (o.type === 0) {
-      // Wine bottle — dark burgundy with cream label
-      ctx.fillStyle = '#722F37';
-      ctx.fillRect(bx + 3, by, 8, o.h);
-      ctx.strokeRect(bx + 3, by, 8, o.h);
-      // Neck
-      ctx.fillRect(bx + 5, by - 8, 4, 10);
-      ctx.strokeRect(bx + 5, by - 8, 4, 10);
-      // Label
-      ctx.fillStyle = C.cream;
-      ctx.fillRect(bx + 4, by + o.h * 0.3, 6, 10);
-    } else if (o.type === 1) {
-      // Cafe chair — ochre with black outline
-      ctx.fillStyle = C.ochre;
-      // Seat
-      ctx.fillRect(bx, by + 10, o.w, 4);
-      ctx.strokeRect(bx, by + 10, o.w, 4);
-      // Legs
-      ctx.fillRect(bx + 2, by + 14, 3, o.h - 14);
-      ctx.fillRect(bx + o.w - 5, by + 14, 3, o.h - 14);
-      // Back
-      ctx.fillRect(bx, by, 3, 14);
-      ctx.fillRect(bx + o.w - 3, by, 3, 14);
-      ctx.fillRect(bx, by, o.w, 3);
-      ctx.strokeRect(bx, by, o.w, o.h);
-    } else {
-      // Cypress tree — bright terracotta pot + dark foliage with outline
-      // Pot
-      ctx.fillStyle = '#C45A3C';
-      ctx.fillRect(bx + 4, ground - 16, 12, 16);
-      ctx.strokeRect(bx + 4, ground - 16, 12, 16);
-      // Foliage — tall narrow triangle
-      ctx.fillStyle = C.black;
+      // Rock
+      ctx.fillStyle = C.rock;
       ctx.beginPath();
-      ctx.moveTo(bx + 10, by);
-      ctx.lineTo(bx - 2, ground - 16);
-      ctx.lineTo(bx + 22, ground - 16);
+      ctx.moveTo(bx + 2, ground);
+      ctx.lineTo(bx, by + o.h * 0.3);
+      ctx.lineTo(bx + o.w * 0.3, by);
+      ctx.lineTo(bx + o.w * 0.7, by + o.h * 0.1);
+      ctx.lineTo(bx + o.w, by + o.h * 0.25);
+      ctx.lineTo(bx + o.w - 2, ground);
       ctx.closePath();
       ctx.fill();
+      ctx.stroke();
+      // Highlight
+      ctx.fillStyle = C.rockLight;
+      ctx.beginPath();
+      ctx.moveTo(bx + o.w * 0.3, by);
+      ctx.lineTo(bx + o.w * 0.5, by + o.h * 0.3);
+      ctx.lineTo(bx + o.w * 0.15, by + o.h * 0.4);
+      ctx.lineTo(bx, by + o.h * 0.3);
+      ctx.closePath();
+      ctx.fill();
+      // Snow on top
+      ctx.fillStyle = C.white;
+      ctx.beginPath();
+      ctx.moveTo(bx + 2, by + o.h * 0.25);
+      ctx.quadraticCurveTo(bx + o.w * 0.3, by - 4, bx + o.w * 0.5, by + o.h * 0.05);
+      ctx.quadraticCurveTo(bx + o.w * 0.7, by - 2, bx + o.w - 4, by + o.h * 0.2);
+      ctx.lineTo(bx + o.w * 0.7, by + o.h * 0.1);
+      ctx.lineTo(bx + o.w * 0.3, by);
+      ctx.closePath();
+      ctx.fill();
+    } else if (o.type === 1) {
+      // Log
+      ctx.fillStyle = '#6B4226';
+      ctx.beginPath();
+      ctx.ellipse(bx + o.w / 2, ground - o.h / 2, o.w / 2, o.h / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // End grain
+      ctx.fillStyle = '#8B6240';
+      ctx.beginPath();
+      ctx.ellipse(bx + o.w - 4, ground - o.h / 2, 6, o.h / 2 - 1, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#5A3420';
+      ctx.stroke();
+      // Rings
+      ctx.strokeStyle = '#5A3420';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.ellipse(bx + o.w - 4, ground - o.h / 2, 3, o.h / 4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Snow dusting
+      ctx.fillStyle = C.white;
+      ctx.beginPath();
+      ctx.ellipse(bx + o.w / 2, ground - o.h + 2, o.w * 0.35, 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Snowman
+      ctx.fillStyle = C.white;
+      ctx.strokeStyle = C.black;
+      ctx.lineWidth = 1.5;
+      // Bottom ball
+      ctx.beginPath();
+      ctx.arc(bx + 12, ground - 10, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Middle ball
+      ctx.beginPath();
+      ctx.arc(bx + 12, ground - 26, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Head
+      ctx.beginPath();
+      ctx.arc(bx + 12, ground - 38, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Eyes
+      ctx.fillStyle = C.black;
+      ctx.beginPath();
+      ctx.arc(bx + 10, ground - 39, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(bx + 14, ground - 39, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      // Nose (carrot)
+      ctx.fillStyle = '#E8751A';
+      ctx.beginPath();
+      ctx.moveTo(bx + 12, ground - 37);
+      ctx.lineTo(bx + 19, ground - 36);
+      ctx.lineTo(bx + 12, ground - 35);
+      ctx.closePath();
+      ctx.fill();
+      // Arms (sticks)
+      ctx.strokeStyle = C.trunk;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(bx + 4, ground - 26);
+      ctx.lineTo(bx - 6, ground - 34);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(bx + 20, ground - 26);
+      ctx.lineTo(bx + 30, ground - 34);
       ctx.stroke();
     }
   }
 
   function drawScore() {
-    ctx.fillStyle = C.black;
+    ctx.fillStyle = C.white;
     ctx.font = '700 24px "Bebas Neue", sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(String(score).padStart(5, '0'), W - 20, 35);
@@ -292,7 +490,7 @@
     ctx.fillStyle = C.salmon;
     ctx.font = '700 48px "Bebas Neue", sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', W / 2, H / 2 - 20);
+    ctx.fillText('WIPEOUT', W / 2, H / 2 - 20);
 
     ctx.fillStyle = C.cream;
     ctx.font = '400 16px "Space Mono", monospace';
@@ -302,13 +500,13 @@
 
   // --- Collision ---
   function checkCollision(o: Obstacle): boolean {
-    const vx = vespa.x + 5;
-    const vy2 = vespa.y + 5;
-    const vw = vespa.w - 10;
-    const vh = vespa.h - 5;
+    const px = player.x + 8;
+    const py = player.y + 8;
+    const pw = player.w - 16;
+    const ph = player.h - 8;
     const ox = o.x;
     const oy = ground - o.h;
-    return vx < ox + o.w && vx + vw > ox && vy2 < oy + o.h && vy2 + vh > oy;
+    return px < ox + o.w && px + pw > ox && py < oy + o.h && py + ph > oy;
   }
 
   // --- Update ---
@@ -319,50 +517,68 @@
     if (frameCount % 10 === 0) score++;
     if (frameCount % 500 === 0) speed += 0.5;
 
-    // Vespa physics
-    if (!vespa.grounded) {
-      vespa.vy += GRAVITY;
-      vespa.y += vespa.vy;
-      if (vespa.y >= ground - vespa.h) {
-        vespa.y = ground - vespa.h;
-        vespa.vy = 0;
-        vespa.grounded = true;
-        vespa.jumping = false;
+    // Player physics
+    if (!player.grounded) {
+      player.vy += GRAVITY;
+      player.y += player.vy;
+      if (player.y >= ground - player.h) {
+        player.y = ground - player.h;
+        player.vy = 0;
+        player.grounded = true;
+        player.jumping = false;
       }
     }
 
-    // Scroll buildings (parallax — slower)
-    for (const b of buildings) {
-      b.x -= speed * 0.3;
+    // Scroll mountains (parallax)
+    for (const m of mountains) {
+      m.x -= speed * (m.layer === 0 ? 0.15 : 0.3);
     }
-    // Recycle buildings
-    if (buildings.length > 0 && buildings[0].x + buildings[0].w < 0) {
-      const last = buildings[buildings.length - 1];
-      buildings.shift();
-      const bw = 40 + Math.random() * 60;
-      const bh = 80 + Math.random() * 120;
-      buildings.push({
-        x: last.x + last.w + 5,
-        w: bw,
-        h: bh,
-        color: Math.random() > 0.5 ? C.steel : C.cream,
+    // Recycle mountains
+    for (let i = 0; i < mountains.length; i++) {
+      if (mountains[i].x + mountains[i].w < -50) {
+        const layer = mountains[i].layer;
+        const last = mountains.filter((m2) => m2.layer === layer).pop()!;
+        const mw = layer === 0 ? 150 + Math.random() * 200 : 100 + Math.random() * 150;
+        const mh = layer === 0 ? 100 + Math.random() * 80 : 60 + Math.random() * 60;
+        mountains[i] = { x: last.x + last.w * 0.6, w: mw, h: mh, layer };
+      }
+    }
+
+    // Scroll bg trees
+    for (const t of bgTrees) {
+      t.x -= speed * 0.5;
+    }
+    if (bgTrees.length > 0 && bgTrees[0].x < -60) {
+      bgTrees.shift();
+      const last = bgTrees[bgTrees.length - 1];
+      bgTrees.push({
+        x: (last?.x ?? W) + 30 + Math.random() * 50,
+        h: 30 + Math.random() * 40,
+        shade: Math.random(),
       });
     }
 
-    // Scroll stones
-    for (const s of stones) {
-      s.x -= speed;
+    // Scroll bumps
+    for (const b of bumps) {
+      b.x -= speed;
     }
-    // Recycle stones
-    if (stones.length > 0 && stones[0].x + stones[0].w < 0) {
-      stones.shift();
-      const last = stones[stones.length - 1];
-      stones.push({
-        x: (last?.x ?? W) + 18 + Math.random() * 10,
-        y: ground + 10 + Math.random() * 40,
-        w: 12 + Math.random() * 8,
-        h: 8 + Math.random() * 5,
+    if (bumps.length > 0 && bumps[0].x + bumps[0].w < 0) {
+      bumps.shift();
+      const last = bumps[bumps.length - 1];
+      bumps.push({
+        x: (last?.x ?? W) + 15 + Math.random() * 12,
+        y: ground + 8 + Math.random() * 40,
+        w: 10 + Math.random() * 12,
+        h: 3 + Math.random() * 4,
       });
+    }
+
+    // Snowflakes
+    for (const f of flakes) {
+      f.x += f.vx - speed * 0.2;
+      f.y += f.vy;
+      if (f.y > H) { f.y = -5; f.x = Math.random() * W; }
+      if (f.x < -5) { f.x = W + 5; f.y = Math.random() * H; }
     }
 
     // Spawn obstacles
@@ -371,7 +587,6 @@
       spawnObstacle();
       spawnTimer = 0;
       nextSpawn = SPAWN_INTERVAL_MIN + Math.random() * (SPAWN_INTERVAL_MAX - SPAWN_INTERVAL_MIN);
-      // Decrease interval as speed increases
       nextSpawn = Math.max(40, nextSpawn - speed * 2);
     }
 
@@ -391,10 +606,12 @@
   function draw() {
     ctx.clearRect(0, 0, W, H);
     drawSky();
-    drawBuildings();
+    drawMountains();
+    drawBgTrees();
     drawGround();
+    drawFlakes();
     for (const o of obstacles) drawObstacle(o);
-    drawVespa();
+    drawPlayer();
     drawScore();
     if (gameOver) drawGameOver();
   }
@@ -406,10 +623,10 @@
   }
 
   function jump() {
-    if (vespa.grounded && !gameOver) {
-      vespa.vy = JUMP_FORCE;
-      vespa.grounded = false;
-      vespa.jumping = true;
+    if (player.grounded && !gameOver) {
+      player.vy = JUMP_FORCE;
+      player.grounded = false;
+      player.jumping = true;
     }
   }
 
@@ -426,7 +643,6 @@
       startGame();
     } else if (gameOver) {
       reset();
-      // running is already true, loop is already going — just un-pause via gameOver = false (done in reset)
     } else {
       jump();
     }
@@ -447,17 +663,14 @@
     handleInput();
   }, { passive: false });
 
-  // Start screen also needs to handle taps (it sits on top of canvas)
   startScreen.addEventListener('click', handleInput);
   startScreen.addEventListener('touchstart', (e) => {
     e.preventDefault();
     handleInput();
   }, { passive: false });
 
-  // Overlay catches taps during gameplay on mobile
   overlay.addEventListener('touchstart', (e) => {
     if (!overlay.classList.contains('active')) return;
-    // Don't intercept close button taps
     if ((e.target as HTMLElement).id === 'vespa-close') return;
     e.preventDefault();
     handleInput();
