@@ -541,7 +541,7 @@
         const last = mountains.filter((m2) => m2.layer === layer).pop()!;
         const mw = layer === 0 ? 150 + Math.random() * 200 : 100 + Math.random() * 150;
         const mh = layer === 0 ? 100 + Math.random() * 80 : 60 + Math.random() * 60;
-        mountains[i] = { x: last.x + last.w * 0.6, w: mw, h: mh, layer };
+        mountains[i] = { x: Math.max(W, last.x + last.w * 0.6), w: mw, h: mh, layer };
       }
     }
 
