@@ -4,17 +4,22 @@
 
 <section class="hero" id="top">
   <div class="hero-inner">
-    <div class="hero-circle" aria-hidden="true">
-      <svg viewBox="0 0 200 200" class="circle-text">
-        <defs>
-          <path id="circlePath" d="M 100,100 m -75,0 a 75,75 0 1,1 150,0 a 75,75 0 1,1 -150,0" />
-        </defs>
-        <text>
-          <textPath href="#circlePath">
-            CODE &bull; CRAFT &bull; BUILD &bull; SHIP &bull; CODE &bull; CRAFT &bull; BUILD &bull; SHIP &bull;
-          </textPath>
-        </text>
-      </svg>
+    <div class="hero-circle-wrap">
+      <div class="hero-photo-wrap">
+        <img src="/IMG_6272.png" alt="Trent Morrell" class="hero-photo" />
+      </div>
+      <div class="hero-circle" aria-hidden="true">
+        <svg viewBox="0 0 200 200" class="circle-text">
+          <defs>
+            <path id="circlePath" d="M 100,100 m -75,0 a 75,75 0 1,1 150,0 a 75,75 0 1,1 -150,0" />
+          </defs>
+          <text>
+            <textPath href="#circlePath">
+              CODE &bull; CRAFT &bull; BUILD &bull; SHIP &bull; CODE &bull; CRAFT &bull; BUILD &bull; SHIP &bull;
+            </textPath>
+          </text>
+        </svg>
+      </div>
     </div>
 
     <h1 class="hero-name">Trent Morrell</h1>
@@ -47,11 +52,38 @@
     z-index: 1;
   }
 
-  .hero-circle {
-    width: 220px;
-    height: 220px;
+  .hero-circle-wrap {
+    position: relative;
+    width: 300px;
+    height: 300px;
     margin: 0 auto var(--space-lg);
+  }
+
+  .hero-photo-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--black);
+  }
+
+  .hero-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 25%;
+    transform: scale(1.8) translateX(5%);
+  }
+
+  .hero-circle {
+    width: 300px;
+    height: 300px;
     animation: spin 20s linear infinite;
+    position: relative;
   }
 
   .circle-text {
@@ -101,9 +133,19 @@
       padding: var(--space-xl) var(--space-sm);
     }
 
+    .hero-circle-wrap {
+      width: 220px;
+      height: 220px;
+    }
+
     .hero-circle {
-      width: 160px;
-      height: 160px;
+      width: 220px;
+      height: 220px;
+    }
+
+    .hero-photo {
+      width: 140px;
+      height: 140px;
     }
 
     .hero-name {
