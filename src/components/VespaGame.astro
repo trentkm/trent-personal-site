@@ -103,7 +103,7 @@
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ground = H - 80;
+    ground = H * 0.65;
   }
 
   function initMountains() {
@@ -476,10 +476,11 @@
     ctx.fillStyle = C.white;
     ctx.font = '700 24px "Bebas Neue", sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(String(score).padStart(5, '0'), W - 20, 35);
+    const scoreY = Math.max(60, H * 0.08);
+    ctx.fillText(String(score).padStart(5, '0'), W - 20, scoreY);
     if (highScore > 0) {
       ctx.font = '400 14px "Space Mono", monospace';
-      ctx.fillText('HI ' + String(highScore).padStart(5, '0'), W - 20, 55);
+      ctx.fillText('HI ' + String(highScore).padStart(5, '0'), W - 20, scoreY + 20);
     }
   }
 
@@ -728,8 +729,9 @@
 
   .close-btn {
     position: absolute;
-    top: 16px;
+    top: env(safe-area-inset-top, 16px);
     right: 20px;
+    margin-top: 12px;
     background: none;
     border: none;
     color: var(--cream);
