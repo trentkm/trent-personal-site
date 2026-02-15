@@ -3,11 +3,13 @@
 ---
 
 <div id="vespa-overlay" class="overlay">
-  <button id="vespa-close" class="close-btn" aria-label="Close game">&times;</button>
+  <button id="vespa-close" class="close-btn close-btn-desktop" aria-label="Close game">&times;</button>
+  <a href="#top" id="vespa-back" class="close-btn close-btn-mobile" aria-label="Back to home">&larr; Home</a>
   <canvas id="vespa-canvas"></canvas>
   <div id="vespa-start" class="start-screen">
     <p class="start-title">Shred Run</p>
-    <p class="start-sub">Press Space or Tap to Start</p>
+    <p class="start-sub start-sub-desktop">Press Space or Tap to Start</p>
+    <p class="start-sub start-sub-mobile">Tap to Start</p>
   </div>
 </div>
 
@@ -496,7 +498,8 @@
     ctx.fillStyle = C.cream;
     ctx.font = '400 16px "Space Mono", monospace';
     ctx.fillText('SCORE: ' + score, W / 2, H / 2 + 20);
-    ctx.fillText('PRESS SPACE TO RETRY', W / 2, H / 2 + 50);
+    const isMobile = 'ontouchstart' in window;
+    ctx.fillText(isMobile ? 'TAP TO RETRY' : 'PRESS SPACE TO RETRY', W / 2, H / 2 + 50);
   }
 
   // --- Collision ---
@@ -672,12 +675,18 @@
 
   overlay.addEventListener('touchstart', (e) => {
     if (!overlay.classList.contains('active')) return;
-    if ((e.target as HTMLElement).id === 'vespa-close') return;
+    if ((e.target as HTMLElement).id === 'vespa-close' || (e.target as HTMLElement).id === 'vespa-back') return;
     e.preventDefault();
     handleInput();
   }, { passive: false });
 
   closeBtn.addEventListener('click', () => {
+    running = false;
+    overlay.classList.remove('active');
+  });
+
+  const backBtn = document.getElementById('vespa-back')!;
+  backBtn.addEventListener('click', () => {
     running = false;
     overlay.classList.remove('active');
   });
@@ -743,10 +752,42 @@
     padding: 8px 12px;
     min-width: 44px;
     min-height: 44px;
+    text-decoration: none;
   }
 
   .close-btn:hover {
     color: var(--salmon);
+  }
+
+  .close-btn-mobile {
+    display: none;
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    left: 20px;
+    right: auto;
+  }
+
+  .start-sub-mobile {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .close-btn-desktop {
+      display: none;
+    }
+
+    .close-btn-mobile {
+      display: block;
+    }
+
+    .start-sub-desktop {
+      display: none;
+    }
+
+    .start-sub-mobile {
+      display: block;
+    }
   }
 
   canvas {
