@@ -11,8 +11,44 @@
       <li><a href="#projects">Projects</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
+    <button class="burger" id="nav-burger" aria-label="Open menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </div>
 </nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <button class="mobile-close" id="mobile-close" aria-label="Close menu">&times;</button>
+  <ul class="mobile-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</div>
+
+<script>
+  const burger = document.getElementById('nav-burger')!;
+  const menu = document.getElementById('mobile-menu')!;
+  const closeBtn = document.getElementById('mobile-close')!;
+  const links = menu.querySelectorAll('a');
+
+  function open() {
+    menu.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function close() {
+    menu.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  burger.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  links.forEach((l) => l.addEventListener('click', close));
+</script>
 
 <style>
   .nav {
@@ -56,13 +92,89 @@
     border-bottom-color: var(--black);
   }
 
-  @media (max-width: 480px) {
+  /* Burger — hidden on desktop */
+  .burger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .burger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--black);
+  }
+
+  /* Mobile menu overlay — hidden by default */
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--salmon);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .mobile-menu.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .mobile-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 2.5rem;
+    cursor: pointer;
+    color: var(--black);
+    padding: 8px 12px;
+    min-width: 44px;
+    min-height: 44px;
+    font-family: var(--font-body);
+  }
+
+  .mobile-links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
+  }
+
+  .mobile-links a {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    letter-spacing: var(--ls-widest);
+    border-bottom: 3px solid transparent;
+    padding-bottom: 4px;
+    transition: border-color 0.2s ease;
+  }
+
+  .mobile-links a:hover {
+    border-bottom-color: var(--black);
+  }
+
+  @media (max-width: 768px) {
     .nav-links {
-      gap: var(--space-sm);
+      display: none;
     }
 
-    .nav-links a {
-      font-size: 0.75rem;
+    .burger {
+      display: flex;
     }
   }
 </style>
