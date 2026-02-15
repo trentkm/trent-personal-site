@@ -18,7 +18,13 @@
     </div>
 
     <h1 class="hero-name">Trent Morrell</h1>
-    <p class="hero-title">Software Engineer · Builder · Vibe Coder</p>
+    <p class="hero-title">
+      <span>Software Engineer</span>
+      <span class="title-dot"> · </span>
+      <span>Builder</span>
+      <span class="title-dot"> · </span>
+      <span>Vibe Coder</span>
+    </p>
     <p class="hero-location">Dallas, Texas</p>
   </div>
 </section>
@@ -106,6 +112,13 @@
 
     .hero-title {
       letter-spacing: 0.2em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15em;
+    }
+
+    .title-dot {
+      display: none;
     }
   }
 </style>
