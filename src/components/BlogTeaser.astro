@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+const latest = posts[0];
+---
+
+{latest && (
+  <section class="blog-teaser section" id="blog">
+    <div class="container">
+      <h2 class="section-title">Blog</h2>
+      <time class="teaser-date" datetime={latest.data.date.toISOString()}>
+        {latest.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+      </time>
+      <h3 class="teaser-title">
+        <a href={`/blog/${latest.id}`}>{latest.data.title}</a>
+      </h3>
+      <p class="teaser-desc">{latest.data.description}</p>
+      <a href="/blog" class="teaser-link">All Posts &rarr;</a>
+    </div>
+  </section>
+)}
+
+<style>
+  .blog-teaser {
+    background: var(--cream);
+  }
+
+  .teaser-date {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: var(--ls-widest);
+    opacity: 0.7;
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .teaser-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    letter-spacing: var(--ls-wider);
+    margin-bottom: var(--space-xs);
+    text-transform: none;
+  }
+
+  .teaser-title a {
+    border-bottom: 2px solid transparent;
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .teaser-title a:hover {
+    border-bottom-color: var(--black);
+  }
+
+  .teaser-desc {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: none;
+    max-width: 600px;
+    margin: 0 auto var(--space-sm);
+    line-height: 1.8;
+  }
+
+  .teaser-link {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: var(--ls-wider);
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .teaser-link:hover {
+    border-color: transparent;
+  }
+</style>

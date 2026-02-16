@@ -1,0 +1,299 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Layout
+  title={`${post.data.title} — Trent Morrell`}
+  description={post.data.description}
+>
+  <Nav />
+
+  <article class="post">
+    <header class="post-header section">
+      <div class="container">
+        <time class="post-date" datetime={post.data.date.toISOString()}>
+          {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </time>
+        <h1 class="post-title">{post.data.title}</h1>
+        {post.data.tags && (
+          <div class="post-tags">
+            {post.data.tags.map((tag) => (
+              <span class="post-tag">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </header>
+
+    <div class="post-body section">
+      <div class="container prose">
+        <Content />
+      </div>
+    </div>
+
+    <footer class="post-footer section">
+      <div class="container">
+        <a href="/blog" class="back-link">&larr; All Posts</a>
+      </div>
+    </footer>
+  </article>
+
+  <Footer />
+</Layout>
+
+<style>
+  .post-header {
+    background: var(--salmon);
+    padding-bottom: var(--space-md);
+  }
+
+  .post-date {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: var(--ls-widest);
+    opacity: 0.7;
+    display: block;
+    margin-bottom: var(--space-sm);
+  }
+
+  .post-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.6rem, 4vw, 3rem);
+    letter-spacing: var(--ls-wider);
+    line-height: 1.2;
+    max-width: 750px;
+    margin: 0 auto var(--space-sm);
+    text-transform: none;
+  }
+
+  .post-tags {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+  }
+
+  .post-tag {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: var(--ls-wide);
+    border: 1px solid var(--black);
+    padding: 0.2rem 0.6rem;
+  }
+
+  .post-body {
+    background: var(--cream);
+  }
+
+  .prose {
+    max-width: 700px;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .prose :global(h2) {
+    font-family: var(--font-heading);
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    letter-spacing: var(--ls-wider);
+    margin-top: var(--space-lg);
+    margin-bottom: var(--space-sm);
+    text-transform: uppercase;
+  }
+
+  .prose :global(h3) {
+    font-family: var(--font-heading);
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    letter-spacing: var(--ls-wide);
+    margin-top: var(--space-md);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+  }
+
+  .prose :global(p) {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    line-height: 2;
+    margin-bottom: var(--space-sm);
+    letter-spacing: 0.03em;
+  }
+
+  .prose :global(a) {
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 1px;
+    transition: border-color 0.2s ease;
+  }
+
+  .prose :global(a:hover) {
+    border-color: transparent;
+  }
+
+  .prose :global(strong) {
+    font-weight: 700;
+  }
+
+  .prose :global(em) {
+    font-family: var(--font-script);
+    font-style: italic;
+    letter-spacing: 0.05em;
+  }
+
+  .prose :global(code) {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.06);
+    padding: 0.15rem 0.4rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .prose :global(pre) {
+    background: var(--black);
+    color: var(--cream);
+    padding: var(--space-sm);
+    overflow-x: auto;
+    margin-bottom: var(--space-sm);
+    border: 2px solid var(--black);
+  }
+
+  .prose :global(pre code) {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 0.8rem;
+    color: var(--cream);
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    line-height: 2;
+    margin-bottom: var(--space-sm);
+    padding-left: 1.5rem;
+    letter-spacing: 0.03em;
+  }
+
+  .prose :global(ul) {
+    list-style: none;
+  }
+
+  .prose :global(ul li) {
+    position: relative;
+    padding-left: 1rem;
+  }
+
+  .prose :global(ul li::before) {
+    content: '—';
+    position: absolute;
+    left: 0;
+  }
+
+  .prose :global(ol) {
+    list-style: decimal;
+  }
+
+  .prose :global(img) {
+    width: 100%;
+    max-width: 700px;
+    margin: var(--space-sm) auto var(--space-md);
+    display: block;
+    border: 2px solid var(--black);
+  }
+
+  .prose :global(.style-grid) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-xs);
+    margin: var(--space-sm) auto var(--space-md);
+    max-width: 700px;
+  }
+
+  .prose :global(.style-grid p) {
+    margin: 0;
+  }
+
+  .prose :global(.style-grid img) {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .prose :global(.compare-stack) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: var(--space-sm) auto var(--space-md);
+    max-width: 360px;
+  }
+
+  .prose :global(.compare-stack img) {
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .prose :global(.compare-arrow) {
+    font-size: 2rem;
+    line-height: 1;
+    padding: var(--space-xs) 0;
+    opacity: 0.5;
+  }
+
+  @media (max-width: 480px) {
+    .prose :global(.style-grid) {
+      grid-template-columns: 1fr;
+    }
+
+    .prose :global(.compare-stack) {
+      max-width: 300px;
+    }
+  }
+
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--black);
+    padding-left: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .prose :global(hr) {
+    border: none;
+    height: 2px;
+    background: var(--black);
+    width: 60px;
+    margin: var(--space-lg) auto;
+  }
+
+  .post-footer {
+    background: var(--cream);
+    padding-top: 0;
+  }
+
+  .back-link {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: var(--ls-wider);
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .back-link:hover {
+    border-color: transparent;
+  }
+</style>

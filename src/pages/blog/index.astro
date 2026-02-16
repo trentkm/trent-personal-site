@@ -1,0 +1,157 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+
+<Layout title="Blog — Trent Morrell" description="Writing about building things.">
+  <Nav />
+  <section class="blog-header section">
+    <div class="container">
+      <h1 class="section-title">Blog</h1>
+      <p class="blog-subtitle">Notes on building things</p>
+    </div>
+  </section>
+
+  <section class="blog-list section">
+    <div class="container">
+      <ul class="post-list">
+        {posts.map((post) => (
+          <li class="post-item">
+            <div class="post-divider" aria-hidden="true"></div>
+            <time class="post-date" datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </time>
+            <h2 class="post-title">
+              <a href={`/blog/${post.id}`}>{post.data.title}</a>
+            </h2>
+            <p class="post-desc">{post.data.description}</p>
+            {post.data.tags && (
+              <p class="post-tags">
+                {post.data.tags.map((tag) => (
+                  <span class="post-tag">{tag}</span>
+                ))}
+              </p>
+            )}
+            <a href={`/blog/${post.id}`} class="post-link">Read &rarr;</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  .blog-header {
+    background: var(--salmon);
+    padding-bottom: var(--space-md);
+  }
+
+  .blog-subtitle {
+    font-family: var(--font-script);
+    font-style: italic;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    text-transform: none;
+  }
+
+  .blog-list {
+    background: var(--cream);
+  }
+
+  .post-list {
+    text-align: center;
+  }
+
+  .post-item {
+    margin-bottom: var(--space-lg);
+  }
+
+  .post-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .post-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--black);
+    margin: 0 auto var(--space-md);
+  }
+
+  .post-item:first-child .post-divider {
+    display: none;
+  }
+
+  .post-date {
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: var(--ls-widest);
+    opacity: 0.7;
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .post-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    letter-spacing: var(--ls-wider);
+    margin-bottom: var(--space-xs);
+    text-transform: none;
+  }
+
+  .post-title a {
+    border-bottom: 2px solid transparent;
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .post-title a:hover {
+    border-bottom-color: var(--black);
+  }
+
+  .post-desc {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: none;
+    max-width: 600px;
+    margin: 0 auto var(--space-xs);
+    line-height: 1.8;
+  }
+
+  .post-tags {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xs);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+  }
+
+  .post-tag {
+    font-family: var(--font-body);
+    font-size: 0.7rem;
+    letter-spacing: var(--ls-wide);
+    border: 1px solid var(--black);
+    padding: 0.2rem 0.6rem;
+  }
+
+  .post-link {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    letter-spacing: var(--ls-wider);
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .post-link:hover {
+    border-color: transparent;
+  }
+</style>
