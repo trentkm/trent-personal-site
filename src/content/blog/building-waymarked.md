@@ -69,7 +69,25 @@ From there it's two-phase rendering. I optimistically queue a preview render. Th
 
 When they actually pay, the Lambda renders the full print-quality image — 7200x4800 pixels for a 24x16" poster at 300 DPI. This takes up to 7 minutes. The user gets an email when it's ready.
 
-The math for making this work was the hardest part. The preview renders MapLibre at an internal resolution of `canvasWidth * displayScale * detailScale` — typically around 2000 pixels. The export needs to show the exact same geographic area at 7200 pixels. The zoom adjustment is `log2(exportWidth / previewInternalWidth)`, which gets added to the preview zoom level. Text and line widths scale by `effectiveScale / (displayScale * detailScale)` to maintain visual proportion. Get any of this wrong and the printed map doesn't match what the user saw in the editor. I struggled with this for a while before the math clicked.
+The math for making this work was the hardest part. The preview renders MapLibre at an internal resolution of around 2000 pixels:
+
+```
+previewWidth = canvasWidth × displayScale × detailScale
+```
+
+The export needs to show the exact same geographic area at 7200 pixels. The zoom adjustment:
+
+```
+exportZoom = previewZoom + log₂(exportWidth / previewWidth)
+```
+
+Text and line widths scale to maintain visual proportion:
+
+```
+scaleFactor = effectiveScale / (displayScale × detailScale)
+```
+
+Get any of this wrong and the printed map doesn't match what the user saw in the editor. I struggled with this for a while before the math clicked.
 
 ## Physical Products Without a Warehouse
 
