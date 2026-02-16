@@ -41,6 +41,8 @@ On top of the vector data, terrain comes from AWS elevation tiles rendered as hi
 
 The rabbit hole I didn't expect was bathymetry. The sketch-style maps use six layers of Natural Earth ocean depth data at different intervals — 200m, 2000m, 4000m, 6000m, 8000m, 10000m. Each layer renders as a progressively lighter fill, creating a depth gradient in the ocean. A subtle contour line at the 200m mark traces the continental shelf. Stacking these layers with the right opacity creates the illusion of ocean depth that makes the maps feel alive.
 
+![Sketch style with bathymetry](/blog/waymarked/bathymetry.jpg)
+
 28 styles across four families: Classic vintage cartography, terrain-only relief maps, contemporary clean aesthetics, and hand-drawn sketch styles with bathymetry. Each one is a full MapLibre GL style specification — colors, fonts, line widths, label rules, layer ordering. Building these taught me more about visual design than any course could.
 
 <div class="style-grid">
